@@ -1,0 +1,27 @@
+#!/usr/bin/python
+import os
+import argparse
+import pwd
+import re
+import sys
+
+from tools.webservice import WebService, WebServiceJob, webservice_class_for
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument('type', help='Type of webservice to start',
+                       choices=['nodejs', 'uwsgi-python'])
+args = argparser.parse_args()
+
+
+pwd_entry = pwd.getpwuid(os.getuid())
+TOOL = re.sub(r'^tools.', '', pwd_entry.pw_name) # Tool users are of form tools.TOOLNAME
+
+webservice = webservice_class_for(args.type)(TOOL)
+
+service_valid, msg = webservice.check()
+if not service_valid:
+    print msg
+    sys.exit(-1)
+
+job = WebServiceJob(webservice)
+job.submit()

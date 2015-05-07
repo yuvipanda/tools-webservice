@@ -1,0 +1,19 @@
+#!/usr/bin/python
+import os
+import argparse
+import pwd
+import re
+
+from tools.webservice import WebService, proxy, webservice_class_for
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument('--type', help='Type of webservice to start',
+                       choices=['nodejs', 'uwsgi-python'])
+args = argparser.parse_args()
+
+
+pwd_entry = pwd.getpwuid(os.getuid())
+TOOL = re.sub(r'^tools.', '', pwd_entry.pw_name) # Tool users are of form tools.TOOLNAME
+
+webservice = webservice_class_for(args.type)(TOOL)
+webservice.run(proxy.get_open_port())
